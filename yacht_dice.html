@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>리얼 3D 야추 다이스</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+            color: #f8fafc;
+            touch-action: manipulation;
+        }
+
+        /* Scoreboard Interactions */
+        .score-row { transition: background-color 0.15s; }
+        .score-row.playable { cursor: pointer; }
+        .score-row.playable:hover { background-color: #334155; }
+        .temp-score { color: #10b981; font-weight: bold; }
+        .discard-score { color: #ef4444; font-weight: bold; }
+        .score-row.playable:hover .discard-score { text-decoration: line-through; }
+        .final-score { color: #f8fafc; font-weight: 800; }
+        
+        .die-wrapper {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            margin-left: -30px;
+            margin-top: -30px;
+            transition: top 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), left 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s;
+            pointer-events: auto;
+            z-index: 10;
+            cursor: pointer;
+        }
+        
+        .die-wrapper:hover {
+            filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.8));
+        }
+
+        .die-3d {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.17, 0.67, 0.1, 1);
+        }
+
+        .face {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: inset 0 -4px 0 rgba(0,0,0,0.1), inset 0 0 10px rgba(0,0,0,0.05);
+            display: grid;
+            grid-template-areas:
+                "a . c"
+                "e g f"
+                "d . b";
+            padding: 8px;
+            box-sizing: border-box;
+            backface-visibility: hidden; /* Fixes some rendering glitches */
+        }
+
+        /* 3D Face Positions */
+        .front  { transform: translateZ(30px); }
+        .back   { transform: rotateX(180deg) translateZ(30px); }
+        .top    { transform: rotateX(90deg) translateZ(30px); }
+        .bottom { transform: rotateX(-90deg) translateZ(30px); }
+        .right  { transform: rotateY(90deg) translateZ(30px); }
+        .left   { transform: rotateY(-90deg) translateZ(30px); }
+
+        /* Dot Grid Placement */
+        .die-dot {
+            display: none; /* 필요 없는 점은 기본적으로 숨김 처리 */
+            width: 12px; height: 12px;
+            border-radius: 50%; background-color: #1e293b;
+            align-self: center; justify-self: center;
+        }
+        
+        /* 각 면의 숫자에 맞게 필요한 점만 화면에 표시(block)하고 위치 지정 */
+        .face[data-value="1"] .dot-1 { display: block; grid-area: g; background-color: #ef4444; width: 16px; height: 16px;} /* 1은 크고 붉은 점 */
+        
+        .face[data-value="2"] .dot-1 { display: block; grid-area: a; } 
+        .face[data-value="2"] .dot-2 { display: block; grid-area: b; }
+        
+        .face[data-value="3"] .dot-1 { display: block; grid-area: a; } 
+        .face[data-value="3"] .dot-2 { display: block; grid-area: g; } 
+        .face[data-value="3"] .dot-3 { display: block; grid-area: b; }
+        
+        .face[data-value="4"] .dot-1 { display: block; grid-area: a; } 
+        .face[data-value="4"] .dot-2 { display: block; grid-area: c; } 
+        .face[data-value="4"] .dot-3 { display: block; grid-area: d; } 
+        .face[data-value="4"] .dot-4 { display: block; grid-area: b; }
+        
+        .face[data-value="5"] .dot-1 { display: block; grid-area: a; } 
+        .face[data-value="5"] .dot-2 { display: block; grid-area: c; } 
+        .face[data-value="5"] .dot-3 { display: block; grid-area: g; } 
+        .face[data-value="5"] .dot-4 { display: block; grid-area: d; } 
+        .face[data-value="5"] .dot-5 { display: block; grid-area: b; }
+        
+        .face[data-value="6"] .dot-1 { display: block; grid-area: a; } 
+        .face[data-value="6"] .dot-2 { display: block; grid-area: c; } 
+        .face[data-value="6"] .dot-3 { display: block; grid-area: e; } 
+        .face[data-value="6"] .dot-4 { display: block; grid-area: f; } 
+        .face[data-value="6"] .dot-5 { display: block; grid-area: d; } 
+        .face[data-value="6"] .dot-6 { display: block; grid-area: b; }
+
+        .board-felt {
+            background-color: #1b5e20;
+            background-image: radial-gradient(circle, transparent 20%, rgba(0,0,0,0.5) 120%), url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)" opacity="0.15"/></svg>');
+        }
+        
+        .wood-border {
+            border: 16px solid #4e342e;
+            border-radius: 1rem;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.8), 0 10px 25px rgba(0,0,0,0.5);
+            border-top-color: #5d4037;
+            border-left-color: #5d4037;
+            border-right-color: #3e2723;
+            border-bottom-color: #3e2723;
+        }
+
+        #dice-cup {
+            width: 110px;
+            height: 130px;
+            background: linear-gradient(to right, #2a1610, #5d3322 30%, #4a2718 70%, #1a0e0a);
+            border-radius: 15px 15px 50px 50px;
+            position: absolute;
+            top: 45%; left: 50%;
+            z-index: 50;
+            box-shadow: 0 30px 40px rgba(0,0,0,0.7), inset 0 -10px 20px rgba(0,0,0,0.8);
+            border-top: 4px solid #1a0e0a;
+            transform-origin: center bottom;
+        }
+
+        /* Cup Animations */
+        @keyframes cup-shake {
+            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+            25% { transform: translate(-55%, -48%) rotate(-12deg); }
+            50% { transform: translate(-45%, -52%) rotate(12deg); }
+            75% { transform: translate(-52%, -50%) rotate(-8deg); }
+        }
+        @keyframes cup-lift {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            40% { transform: translate(-50%, -80%) scale(1.1); opacity: 1; }
+            100% { transform: translate(-50%, -180%) scale(1.3) rotate(15deg); opacity: 0; }
+        }
+        @keyframes cup-cover {
+            0% { transform: translate(-50%, -180%) scale(1.3) rotate(-15deg); opacity: 0; }
+            60% { transform: translate(-50%, -80%) scale(1.1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        .anim-shake { animation: cup-shake 0.4s infinite ease-in-out; }
+        .anim-lift { animation: cup-lift 0.5s forwards ease-in; }
+        .anim-cover { animation: cup-cover 0.4s forwards ease-out; }
+
+        /* Modal */
+        #game-over-modal { display: none; backdrop-filter: blur(6px); }
+    </style>
+</head>
+<body class="flex flex-col h-screen overflow-hidden">
+
+    <header class="bg-slate-800 shadow-xl p-4 flex justify-between items-center z-10 shrink-0 border-b border-slate-700">
+        <h1 class="text-2xl font-black text-emerald-400 tracking-wider">야추 <span class="text-white italic">DICE</span></h1>
+        <div class="text-slate-300 font-semibold px-4 py-1 bg-slate-900 rounded-full border border-slate-700">
+            라운드 <span id="round-display" class="text-emerald-400 font-bold ml-1">1</span><span class="text-slate-500"> / 12</span>
+        </div>
+    </header>
+
+    <main class="flex-1 overflow-hidden flex flex-col md:flex-row w-full max-w-7xl mx-auto p-2 md:p-4 gap-4">
+        
+        <section class="w-full md:w-[400px] flex flex-col bg-slate-800 rounded-xl shadow-2xl border border-slate-700 overflow-y-auto shrink-0">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-900 text-slate-400 text-sm tracking-wide">
+                        <th class="p-3 border-b border-slate-700 font-bold">카테고리 (족보)</th>
+                        <th class="p-3 border-b border-slate-700 text-center font-bold w-20">점수</th>
+                    </tr>
+                </thead>
+                <tbody id="score-table-body">
+                    <!-- 상단 족보 -->
+                    <tr class="score-row border-b border-slate-700/50" data-category="ones">
+                        <td class="p-3 font-semibold text-slate-200"><span class="text-red-400 mr-2 text-lg leading-none">⚀</span> 에이스</td>
+                        <td class="p-3 text-center score-cell text-lg" data-category="ones">-</td>
+                    </tr>
+                    <tr class="score-row border-b border-slate-700/50" data-category="twos">
+                        <td class="p-3 font-semibold text-slate-200"><span class="text-slate-400 mr-2 text-lg leading-none">⚁</span> 듀스</td>
+                        <td class="p-3 text-center score-cell text-lg" data-category="twos">-</td>
+                    </tr>
+                    <tr class="score-row border-b border-slate-700/50" data-category="threes">
+                        <td class="p-3 font-semibold text-slate-200"><span class="text-slate-400 mr-2 text-lg leading-none">⚂</span> 쓰리스</td>
+                        <td class="p-3 text-center score-cell text-lg" data-category="threes">-</td>
+                    </tr>
+                    <tr class="score-row border-b border-slate-700/50" data-category="fours">
+                        <td class="p-3 font-semibold text-slate-200"><span class="text-slate-400 mr-2 text-lg leading-none">⚃</span> 포스</td>
+                        <td class="p-3 text-center score-cell text-lg" data-category="fours">-</td>
+                    </tr>
+                    <tr class="score-row border-b border-slate-700/50" data-category="fives">
+                        <td class="p-3 font-semibold text-slate-200"><span class="text-slate-400 mr-2 text-lg leading-none">⚄</span> 파이브스</td>
+                        <td class="p-3 text-center score-cell text-lg" data-category="fives">-</td>
+                    </tr>
+                    <tr class="score-row border-b border-slate-700" data-category="sixes">
+                        <td class="p-3 font-semibold text-slate-200"><span class="text-slate-400 mr-2 text-lg leading-none">⚅</span> 식스스</td>
+                        <td class="p-3 text-center score-cell text-lg" data-category="sixes">-</td>
+                    </tr>
+                    <!-- 보너스 구간 -->
+                    <tr class="bg-slate-900/50 border-b border-slate-700">
+                        <td class="p-3 text-sm text-slate-400">상단 점수 (63점 이상 시 보너스)</td>
+                        <td class="p-3 text-center font-bold text-slate-300" id="subtotal-score">0/63</td>
+                    </tr>
+                    <tr class="bg-slate-900/50 border-b border-slate-700">
+                        <td class="p-3 text-sm text-amber-400/80 font-bold">+35 보너스</td>
+                        <td class="p-3 text-center font-bold text-slate-500" id="bonus-score">0</td>
+                    </tr>
+
+                    <!-- 하단 족보 -->
+                    <tr class="score-row border-b border-slate-700/50" data-category="choice">
+                        <td class="p-3 font-semibold text-slate-200">초이스 <span class="text-xs font-normal text-slate-500 ml-1">(모든 합)</span></td>
+                        <td class="p-3 text-center score-cell text-lg" data-category="choice">-</td>
+                    </tr>
+                    <tr class="score-row border-b border-slate-700/50" data-category="fourOfAKind">
+                        <td class="p-3 font-semibold text-slate-200">포 오브 어 카인드 <span class="text-xs font-normal text-slate-500 ml-1">(동일 4개)</span></td>
+                        <td class="p-3 text-center score-cell text-lg" data-category="fourOfAKind">-</td>
+                    </tr>
+                    <tr class="score-row border-b border-slate-700/50" data-category="fullHouse">
+                        <td class="p-3 font-semibold text-slate-200">풀 하우스 <span class="text-xs font-normal text-slate-500 ml-1">(3개+2개)</span></td>
+                        <td class="p-3 text-center score-cell text-lg" data-category="fullHouse">-</td>
+                    </tr>
+                    <tr class="score-row border-b border-slate-700/50" data-category="smallStraight">
+                        <td class="p-3 font-semibold text-slate-200">스몰 스트레이트 <span class="text-xs font-normal text-amber-400/70 ml-1">15점</span></td>
+                        <td class="p-3 text-center score-cell text-lg" data-category="smallStraight">-</td>
+                    </tr>
+                    <tr class="score-row border-b border-slate-700/50" data-category="largeStraight">
+                        <td class="p-3 font-semibold text-slate-200">라지 스트레이트 <span class="text-xs font-normal text-amber-400/70 ml-1">30점</span></td>
+                        <td class="p-3 text-center score-cell text-lg" data-category="largeStraight">-</td>
+                    </tr>
+                    <tr class="score-row border-b border-slate-700" data-category="yacht">
+                        <td class="p-3 text-emerald-400 font-black text-lg tracking-wide">야추 (YACHT) <span class="text-xs font-normal text-emerald-600/70 ml-1">50점</span></td>
+                        <td class="p-3 text-center score-cell text-emerald-400 font-black text-xl" data-category="yacht">-</td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr class="bg-slate-900 border-t-4 border-emerald-500">
+                        <td class="p-4 font-black text-xl text-white">총점</td>
+                        <td class="p-4 text-center font-black text-2xl text-emerald-400" id="total-score">0</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </section>
+
+        <section class="flex-1 flex flex-col gap-4 relative min-h-[400px]">
+            
+            <div id="status-message" class="text-xl md:text-2xl font-bold text-slate-200 h-8 text-center bg-slate-800 rounded-lg shadow p-1 border border-slate-700 z-20">
+                주사위를 굴려주세요!
+            </div>
+
+            <!-- The Physical Board -->
+            <div id="game-board" class="flex-1 board-felt wood-border relative overflow-hidden flex flex-col justify-between">
+                
+                <!-- Roll Area -->
+                <div class="absolute inset-0 pointer-events-none" id="roll-area-bounds"></div>
+
+                <!-- 3D Cup -->
+                <div id="dice-cup" class="hidden"></div>
+
+                <!-- Keep Tray (Bottom edge of board) -->
+                <div class="absolute bottom-0 left-0 w-full h-24 bg-black/50 border-t-[8px] border-[#3e2723] flex items-center justify-center pointer-events-none z-0 box-border">
+                    <span class="absolute top-1 text-white/20 font-bold text-xs tracking-widest">K E E P &nbsp; A R E A</span>
+                    <!-- Kept dice will snap to this row -->
+                </div>
+
+                <!-- Dice Container -->
+                <div id="dice-container" class="absolute inset-0 pointer-events-none">
+                    <!-- Dice wrappers injected here -->
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 flex justify-between items-center shadow-lg">
+                <div class="text-slate-400 font-medium">
+                    남은 굴리기<br><span id="rolls-left" class="text-white text-3xl font-black">3</span>
+                </div>
+                <button id="roll-btn" class="w-2/3 max-w-[250px] bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-slate-900 font-black text-2xl py-4 rounded-xl shadow-[0_6px_0_#065f46] hover:translate-y-[2px] hover:shadow-[0_4px_0_#065f46] active:translate-y-[6px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-[6px]">
+                    ROLL (굴리기)
+                </button>
+            </div>
+
+        </section>
+    </main>
+
+    <div id="game-over-modal" class="fixed inset-0 bg-black/80 flex justify-center items-center z-50">
+        <div class="bg-slate-800 p-8 rounded-3xl shadow-2xl border-4 border-emerald-500 max-w-sm w-full mx-4 text-center">
+            <h2 class="text-4xl font-black text-emerald-400 mb-2">게임 종료</h2>
+            <p class="text-slate-400 mb-6">최종 점수</p>
+            <div class="text-7xl font-black text-white mb-8 drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]" id="final-score-display">0</div>
+            <button id="restart-btn" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold text-xl py-4 rounded-xl shadow-[0_4px_0_#0f172a] active:shadow-none active:translate-y-[4px] transition-all">
+                새 게임 시작
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const NUM_DICE = 5;
+        const MAX_ROLLS = 3;
+        const TOTAL_ROUNDS = 12;
+
+        let state = {
+            dice: [1, 2, 3, 4, 5], // Initial fake values
+            locked: [false, false, false, false, false],
+            rollsLeft: MAX_ROLLS,
+            round: 1,
+            scores: {
+                ones: null, twos: null, threes: null, fours: null, fives: null, sixes: null,
+                choice: null, fourOfAKind: null, fullHouse: null, smallStraight: null, largeStraight: null, yacht: null
+            },
+            isRolling: false,
+            gameEnded: false
+        };
+
+        const DOM = {
+            container: document.getElementById('dice-container'),
+            cup: document.getElementById('dice-cup'),
+            rollBtn: document.getElementById('roll-btn'),
+            rollsLeftText: document.getElementById('rolls-left'),
+            roundDisplay: document.getElementById('round-display'),
+            statusMessage: document.getElementById('status-message'),
+            scoreCells: document.querySelectorAll('.score-cell'),
+            scoreRows: document.querySelectorAll('.score-row'),
+            subtotalScore: document.getElementById('subtotal-score'),
+            bonusScore: document.getElementById('bonus-score'),
+            totalScore: document.getElementById('total-score'),
+            gameOverModal: document.getElementById('game-over-modal'),
+            finalScoreDisplay: document.getElementById('final-score-display'),
+            restartBtn: document.getElementById('restart-btn')
+        };
+
+        // Rotation mapping for 3D faces
+        const faceBases = {
+            1: { x: 0, y: 0 },
+            2: { x: -90, y: 0 },
+            3: { x: 0, y: -90 },
+            4: { x: 0, y: 90 },
+            5: { x: 90, y: 0 },
+            6: { x: 180, y: 0 }
+        };
+
+        // Create Dice DOM Elements
+        function create3DDice() {
+            DOM.container.innerHTML = '';
+            for (let i = 0; i < NUM_DICE; i++) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'die-wrapper';
+                wrapper.dataset.index = i;
+                
+                const die3D = document.createElement('div');
+                die3D.className = 'die-3d';
+                
+                // Add 6 faces
+                const faces = ['front', 'top', 'right', 'left', 'bottom', 'back'];
+                const values = [1, 2, 3, 4, 5, 6];
+                
+                for (let j = 0; j < 6; j++) {
+                    const face = document.createElement('div');
+                    face.className = `face ${faces[j]}`;
+                    face.dataset.value = values[j];
+                    
+                    // Add dots inside face
+                    for(let d = 1; d <= 6; d++) {
+                        const dot = document.createElement('span');
+                        dot.className = `die-dot dot-${d}`;
+                        face.appendChild(dot);
+                    }
+                    die3D.appendChild(face);
+                }
+
+                wrapper.appendChild(die3D);
+                
+                // Click to Keep
+                wrapper.addEventListener('click', () => toggleLock(i));
+                DOM.container.appendChild(wrapper);
+
+                // Initial position (center of board)
+                resetDiePosition(wrapper, i);
+            }
+        }
+
+        function resetDiePosition(wrapper, index) {
+            wrapper.style.top = '45%';
+            wrapper.style.left = '50%';
+            wrapper.style.opacity = '0'; // Hidden initially
+            const die3D = wrapper.querySelector('.die-3d');
+            die3D.style.transform = `rotateX(0deg) rotateY(0deg)`;
+        }
+
+        async function rollDice() {
+            if (state.rollsLeft <= 0 || state.isRolling) return;
+
+            state.isRolling = true;
+            DOM.rollBtn.disabled = true;
+            DOM.statusMessage.innerText = "주사위를 섞는 중...";
+            
+            const wrappers = document.querySelectorAll('.die-wrapper');
+            const cup = DOM.cup;
+
+            // 1. Move unkept dice to center and cover with cup
+            wrappers.forEach((wrap, i) => {
+                if (!state.locked[i]) {
+                    wrap.style.transition = 'none'; // Instant move to center
+                    wrap.style.top = '45%';
+                    wrap.style.left = '50%';
+                    wrap.style.opacity = '0';
+                    wrap.offsetHeight; // force reflow
+                    wrap.style.transition = 'top 0.6s ease-out, left 0.6s ease-out, opacity 0.2s';
+                }
+            });
+
+            // Show cup coming down
+            cup.className = 'anim-cover';
+            cup.style.display = 'block';
+            await sleep(400);
+
+            // 2. Shake cup
+            cup.className = 'anim-shake';
+            await sleep(600);
+
+            // 3. Determine new values
+            for (let i = 0; i < NUM_DICE; i++) {
+                if (!state.locked[i]) {
+                    state.dice[i] = Math.floor(Math.random() * 6) + 1;
+                }
+            }
+
+            // 4. Lift cup & Scatter dice
+            cup.className = 'anim-lift';
+            
+            wrappers.forEach((wrap, i) => {
+                if (!state.locked[i]) {
+                    const die3D = wrap.querySelector('.die-3d');
+                    const val = state.dice[i];
+                    
+                    // Scatter Position (Roll Area: Top 10-60%, Left 20-80%)
+                    const rTop = 15 + Math.random() * 45;
+                    const rLeft = 20 + Math.random() * 60;
+                    
+                    wrap.style.top = `${rTop}%`;
+                    wrap.style.left = `${rLeft}%`;
+                    wrap.style.opacity = '1';
+
+                    // 3D Spin Calculation
+                    // Retrieve past rotation to prevent unwinding
+                    let currentX = wrap.dataset.rotX ? parseInt(wrap.dataset.rotX) : 0;
+                    let currentY = wrap.dataset.rotY ? parseInt(wrap.dataset.rotY) : 0;
+
+                    const base = faceBases[val];
+                    
+                    // Add 2-3 full random spins
+                    let spinsX = 720 + Math.floor(Math.random() * 3) * 360;
+                    let spinsY = 720 + Math.floor(Math.random() * 3) * 360;
+                    
+                    // Alternate spin direction for variety
+                    if (Math.random() > 0.5) spinsX *= -1;
+                    if (Math.random() > 0.5) spinsY *= -1;
+
+                    let targetX = currentX - (currentX % 360) + base.x + spinsX;
+                    let targetY = currentY - (currentY % 360) + base.y + spinsY;
+
+                    wrap.dataset.rotX = targetX;
+                    wrap.dataset.rotY = targetY;
+
+                    die3D.style.transform = `rotateX(${targetX}deg) rotateY(${targetY}deg)`;
+                }
+            });
+
+            await sleep(500); // Wait for lift animation to finish
+            cup.style.display = 'none';
+            await sleep(300); // Wait for dice to finish settling
+
+            // Update State
+            state.rollsLeft--;
+            state.isRolling = false;
+            
+            calculateTempScores();
+            updateScoreboardUI();
+            
+            if (state.rollsLeft === 0) {
+                DOM.rollBtn.disabled = true;
+                DOM.statusMessage.innerText = "원하는 족보를 선택해 점수를 기록하세요.";
+            } else {
+                DOM.rollBtn.disabled = false;
+                DOM.statusMessage.innerText = "주사위를 보관(터치)하거나 다시 굴리세요.";
+            }
+            DOM.rollsLeftText.innerText = state.rollsLeft;
+        }
+
+        function toggleLock(index) {
+            if (state.rollsLeft === MAX_ROLLS || state.isRolling || state.gameEnded) return;
+            
+            state.locked[index] = !state.locked[index];
+            const wrap = document.querySelector(`.die-wrapper[data-index="${index}"]`);
+            
+            if (state.locked[index]) {
+                // Move to Keep Tray
+                // Spread evenly at the bottom
+                const spacing = 16; // percentage width spacing
+                const offset = 18 + (index * spacing); 
+                wrap.style.top = 'calc(100% - 45px)';
+                wrap.style.left = `${offset}%`;
+                // Add highlight ring
+                wrap.style.filter = 'drop-shadow(0 0 10px rgba(16, 185, 129, 1))';
+            } else {
+                // Move back to roll area (just give it a random position slightly above)
+                const rTop = 40 + Math.random() * 20;
+                const rLeft = 30 + Math.random() * 40;
+                wrap.style.top = `${rTop}%`;
+                wrap.style.left = `${rLeft}%`;
+                wrap.style.filter = 'none';
+            }
+        }
+
+        function calculateTempScores() {
+            const counts = [0, 0, 0, 0, 0, 0, 0];
+            let sum = 0;
+            state.dice.forEach(d => {
+                counts[d]++;
+                sum += d;
+            });
+
+            const temp = {};
+            temp.ones = counts[1] * 1;
+            temp.twos = counts[2] * 2;
+            temp.threes = counts[3] * 3;
+            temp.fours = counts[4] * 4;
+            temp.fives = counts[5] * 5;
+            temp.sixes = counts[6] * 6;
+            temp.choice = sum;
+            
+            const has4 = counts.some(c => c >= 4);
+            temp.fourOfAKind = has4 ? sum : 0;
+
+            const has3 = counts.some(c => c === 3);
+            const has2 = counts.some(c => c === 2);
+            const has5 = counts.some(c => c === 5);
+            temp.fullHouse = (has3 && has2) || has5 ? sum : 0;
+
+            const c = counts;
+            const hasSmallStraight = 
+                (c[1] && c[2] && c[3] && c[4]) || 
+                (c[2] && c[3] && c[4] && c[5]) || 
+                (c[3] && c[4] && c[5] && c[6]);
+            temp.smallStraight = hasSmallStraight ? 15 : 0;
+
+            const hasLargeStraight = 
+                (c[1] && c[2] && c[3] && c[4] && c[5]) || 
+                (c[2] && c[3] && c[4] && c[5] && c[6]);
+            temp.largeStraight = hasLargeStraight ? 30 : 0;
+
+            temp.yacht = has5 ? 50 : 0;
+            return temp;
+        }
+
+        function updateScoreboardUI() {
+            const tempScores = calculateTempScores();
+            let upperSubtotal = 0;
+
+            DOM.scoreRows.forEach(row => {
+                const cat = row.dataset.category;
+                const cell = row.querySelector('.score-cell');
+                
+                row.classList.remove('playable');
+                cell.classList.remove('temp-score', 'discard-score');
+                row.onclick = null;
+
+                if (state.scores[cat] !== null) {
+                    cell.innerText = state.scores[cat];
+                    cell.classList.add('final-score');
+                    if (['ones', 'twos', 'threes', 'fours', 'fives', 'sixes'].includes(cat)) {
+                        upperSubtotal += state.scores[cat];
+                    }
+                } else if (tempScores && state.rollsLeft < MAX_ROLLS && !state.gameEnded) {
+                    if (tempScores[cat] === 0) {
+                        cell.innerHTML = `0 <span class="text-xs text-red-500 font-bold ml-1 tracking-tight border border-red-500/50 rounded px-1 bg-red-500/10">버리기</span>`;
+                        cell.classList.add('discard-score');
+                    } else {
+                        cell.innerText = tempScores[cat];
+                        cell.classList.add('temp-score');
+                    }
+                    row.classList.add('playable');
+                    row.onclick = () => selectCategory(cat, tempScores[cat]);
+                } else {
+                    cell.innerText = '-';
+                }
+            });
+
+            const bonus = upperSubtotal >= 63 ? 35 : 0;
+            DOM.subtotalScore.innerText = `${upperSubtotal} / 63`;
+            DOM.subtotalScore.className = `p-3 text-center font-bold ${upperSubtotal >= 63 ? 'text-emerald-400' : 'text-slate-300'}`;
+            DOM.bonusScore.innerText = bonus > 0 ? '+35' : '0';
+            DOM.bonusScore.className = `p-3 text-center font-bold ${bonus > 0 ? 'text-emerald-400' : 'text-slate-500'}`;
+
+            let total = 0;
+            for (let key in state.scores) {
+                if (state.scores[key] !== null) total += state.scores[key];
+            }
+            total += bonus;
+            DOM.totalScore.innerText = total;
+        }
+
+        function selectCategory(category, score) {
+            if (state.scores[category] !== null || state.isRolling) return;
+
+            state.scores[category] = score;
+            state.round++;
+            
+            if (state.round > TOTAL_ROUNDS) {
+                endGame();
+            } else {
+                resetTurn();
+            }
+        }
+
+        function resetTurn() {
+            state.locked = [false, false, false, false, false];
+            state.rollsLeft = MAX_ROLLS;
+            
+            DOM.roundDisplay.innerText = state.round;
+            DOM.rollsLeftText.innerText = state.rollsLeft;
+            DOM.rollBtn.disabled = false;
+            DOM.statusMessage.innerText = "주사위를 굴려주세요!";
+            
+            const wrappers = document.querySelectorAll('.die-wrapper');
+            wrappers.forEach((wrap, i) => {
+                wrap.style.filter = 'none';
+                // Hide them back into center until rolled
+                wrap.style.top = '45%';
+                wrap.style.left = '50%';
+                wrap.style.opacity = '0';
+            });
+
+            updateScoreboardUI();
+        }
+
+        function endGame() {
+            state.gameEnded = true;
+            updateScoreboardUI();
+            DOM.statusMessage.innerText = "게임 종료!";
+            DOM.rollBtn.disabled = true;
+            DOM.finalScoreDisplay.innerText = DOM.totalScore.innerText;
+            DOM.gameOverModal.style.display = 'flex';
+        }
+
+        function resetGame() {
+            state = {
+                dice: [1, 2, 3, 4, 5],
+                locked: [false, false, false, false, false],
+                rollsLeft: MAX_ROLLS,
+                round: 1,
+                scores: {
+                    ones: null, twos: null, threes: null, fours: null, fives: null, sixes: null,
+                    choice: null, fourOfAKind: null, fullHouse: null, smallStraight: null, largeStraight: null, yacht: null
+                },
+                isRolling: false,
+                gameEnded: false
+            };
+            
+            DOM.scoreCells.forEach(cell => cell.classList.remove('final-score'));
+            DOM.gameOverModal.style.display = 'none';
+            resetTurn();
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        DOM.rollBtn.addEventListener('click', rollDice);
+        DOM.restartBtn.addEventListener('click', resetGame);
+
+        // Init
+        create3DDice();
+        resetGame();
+
+    </script>
+</body>
+</html>
