@@ -183,7 +183,33 @@
                     </tr>
                 </thead>
                 <tbody id="score-table-body">
-                    <!-- 상단 족보 -->
+                    <!-- 하단 족보 (이제 상단에 위치) -->
+                    <tr class="score-row border-b border-slate-700/50" data-category="choice">
+                        <td class="p-3 font-semibold text-slate-200">초이스 <span class="text-xs font-normal text-slate-500 ml-1">(모든 합)</span></td>
+                        <td class="p-3 text-center score-cell text-lg" data-category="choice">-</td>
+                    </tr>
+                    <tr class="score-row border-b border-slate-700/50" data-category="fourOfAKind">
+                        <td class="p-3 font-semibold text-slate-200">포 오브 어 카인드 <span class="text-xs font-normal text-slate-500 ml-1">(동일 4개)</span></td>
+                        <td class="p-3 text-center score-cell text-lg" data-category="fourOfAKind">-</td>
+                    </tr>
+                    <tr class="score-row border-b border-slate-700/50" data-category="fullHouse">
+                        <td class="p-3 font-semibold text-slate-200">풀 하우스 <span class="text-xs font-normal text-slate-500 ml-1">(3개+2개)</span></td>
+                        <td class="p-3 text-center score-cell text-lg" data-category="fullHouse">-</td>
+                    </tr>
+                    <tr class="score-row border-b border-slate-700/50" data-category="smallStraight">
+                        <td class="p-3 font-semibold text-slate-200">스몰 스트레이트 <span class="text-xs font-normal text-amber-400/70 ml-1">15점</span></td>
+                        <td class="p-3 text-center score-cell text-lg" data-category="smallStraight">-</td>
+                    </tr>
+                    <tr class="score-row border-b border-slate-700/50" data-category="largeStraight">
+                        <td class="p-3 font-semibold text-slate-200">라지 스트레이트 <span class="text-xs font-normal text-amber-400/70 ml-1">30점</span></td>
+                        <td class="p-3 text-center score-cell text-lg" data-category="largeStraight">-</td>
+                    </tr>
+                    <tr class="score-row border-b border-slate-700" data-category="yacht">
+                        <td class="p-3 text-emerald-400 font-black text-lg tracking-wide">야추 (YACHT) <span class="text-xs font-normal text-emerald-600/70 ml-1">50점</span></td>
+                        <td class="p-3 text-center score-cell text-emerald-400 font-black text-xl" data-category="yacht">-</td>
+                    </tr>
+
+                    <!-- 상단 족보 (이제 하단에 위치) -->
                     <tr class="score-row border-b border-slate-700/50" data-category="ones">
                         <td class="p-3 font-semibold text-slate-200"><span class="text-red-400 mr-2 text-lg leading-none">⚀</span> 에이스</td>
                         <td class="p-3 text-center score-cell text-lg" data-category="ones">-</td>
@@ -216,32 +242,6 @@
                     <tr class="bg-slate-900/50 border-b border-slate-700">
                         <td class="p-3 text-sm text-amber-400/80 font-bold">+35 보너스</td>
                         <td class="p-3 text-center font-bold text-slate-500" id="bonus-score">0</td>
-                    </tr>
-
-                    <!-- 하단 족보 -->
-                    <tr class="score-row border-b border-slate-700/50" data-category="choice">
-                        <td class="p-3 font-semibold text-slate-200">초이스 <span class="text-xs font-normal text-slate-500 ml-1">(모든 합)</span></td>
-                        <td class="p-3 text-center score-cell text-lg" data-category="choice">-</td>
-                    </tr>
-                    <tr class="score-row border-b border-slate-700/50" data-category="fourOfAKind">
-                        <td class="p-3 font-semibold text-slate-200">포 오브 어 카인드 <span class="text-xs font-normal text-slate-500 ml-1">(동일 4개)</span></td>
-                        <td class="p-3 text-center score-cell text-lg" data-category="fourOfAKind">-</td>
-                    </tr>
-                    <tr class="score-row border-b border-slate-700/50" data-category="fullHouse">
-                        <td class="p-3 font-semibold text-slate-200">풀 하우스 <span class="text-xs font-normal text-slate-500 ml-1">(3개+2개)</span></td>
-                        <td class="p-3 text-center score-cell text-lg" data-category="fullHouse">-</td>
-                    </tr>
-                    <tr class="score-row border-b border-slate-700/50" data-category="smallStraight">
-                        <td class="p-3 font-semibold text-slate-200">스몰 스트레이트 <span class="text-xs font-normal text-amber-400/70 ml-1">15점</span></td>
-                        <td class="p-3 text-center score-cell text-lg" data-category="smallStraight">-</td>
-                    </tr>
-                    <tr class="score-row border-b border-slate-700/50" data-category="largeStraight">
-                        <td class="p-3 font-semibold text-slate-200">라지 스트레이트 <span class="text-xs font-normal text-amber-400/70 ml-1">30점</span></td>
-                        <td class="p-3 text-center score-cell text-lg" data-category="largeStraight">-</td>
-                    </tr>
-                    <tr class="score-row border-b border-slate-700" data-category="yacht">
-                        <td class="p-3 text-emerald-400 font-black text-lg tracking-wide">야추 (YACHT) <span class="text-xs font-normal text-emerald-600/70 ml-1">50점</span></td>
-                        <td class="p-3 text-center score-cell text-emerald-400 font-black text-xl" data-category="yacht">-</td>
                     </tr>
                 </tbody>
                 <tfoot>
@@ -281,13 +281,18 @@
             </div>
 
             <!-- Controls -->
-            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 flex justify-between items-center shadow-lg">
-                <div class="text-slate-400 font-medium">
+            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 flex flex-col md:flex-row gap-4 justify-between items-center shadow-lg">
+                <div class="text-slate-400 font-medium text-center md:text-left w-full md:w-auto">
                     남은 굴리기<br><span id="rolls-left" class="text-white text-3xl font-black">3</span>
                 </div>
-                <button id="roll-btn" class="w-2/3 max-w-[250px] bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-slate-900 font-black text-2xl py-4 rounded-xl shadow-[0_6px_0_#065f46] hover:translate-y-[2px] hover:shadow-[0_4px_0_#065f46] active:translate-y-[6px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-[6px]">
-                    ROLL (굴리기)
-                </button>
+                <div class="flex w-full md:w-2/3 gap-3">
+                    <button id="roll-btn" class="flex-[2] bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-slate-900 font-black text-xl md:text-2xl py-4 rounded-xl shadow-[0_6px_0_#065f46] hover:translate-y-[2px] hover:shadow-[0_4px_0_#065f46] active:translate-y-[6px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-[6px]">
+                        ROLL (굴리기)
+                    </button>
+                    <button id="discard-mode-btn" disabled class="flex-[1] bg-red-500 hover:bg-red-400 active:bg-red-600 text-white font-black text-lg md:text-xl py-4 rounded-xl shadow-[0_6px_0_#991b1b] hover:translate-y-[2px] hover:shadow-[0_4px_0_#991b1b] active:translate-y-[6px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-[6px]">
+                        족보 버리기
+                    </button>
+                </div>
             </div>
 
         </section>
@@ -322,10 +327,13 @@
             gameEnded: false
         };
 
+        let isDiscardMode = false;
+
         const DOM = {
             container: document.getElementById('dice-container'),
             cup: document.getElementById('dice-cup'),
             rollBtn: document.getElementById('roll-btn'),
+            discardModeBtn: document.getElementById('discard-mode-btn'),
             rollsLeftText: document.getElementById('rolls-left'),
             roundDisplay: document.getElementById('round-display'),
             statusMessage: document.getElementById('status-message'),
@@ -402,6 +410,10 @@
 
             state.isRolling = true;
             DOM.rollBtn.disabled = true;
+            DOM.discardModeBtn.disabled = true;
+            
+            if (isDiscardMode) setDiscardMode(false);
+
             DOM.statusMessage.innerText = "주사위를 섞는 중...";
             
             const wrappers = document.querySelectorAll('.die-wrapper');
@@ -494,6 +506,7 @@
                 DOM.rollBtn.disabled = false;
                 DOM.statusMessage.innerText = "주사위를 보관(터치)하거나 다시 굴리세요.";
             }
+            DOM.discardModeBtn.disabled = false;
             DOM.rollsLeftText.innerText = state.rollsLeft;
         }
 
@@ -520,6 +533,31 @@
                 wrap.style.left = `${rLeft}%`;
                 wrap.style.filter = 'none';
             }
+        }
+
+        function setDiscardMode(active) {
+            if (active === isDiscardMode) return;
+            isDiscardMode = active;
+            
+            if (isDiscardMode) {
+                DOM.discardModeBtn.innerText = "버리기 취소";
+                DOM.discardModeBtn.classList.replace('bg-red-500', 'bg-slate-600');
+                DOM.discardModeBtn.classList.replace('hover:bg-red-400', 'hover:bg-slate-500');
+                DOM.discardModeBtn.classList.replace('shadow-[0_6px_0_#991b1b]', 'shadow-[0_6px_0_#334155]');
+                DOM.statusMessage.innerText = "0점 처리(포기)할 족보를 선택하세요.";
+            } else {
+                DOM.discardModeBtn.innerText = "족보 버리기";
+                DOM.discardModeBtn.classList.replace('bg-slate-600', 'bg-red-500');
+                DOM.discardModeBtn.classList.replace('hover:bg-slate-500', 'hover:bg-red-400');
+                DOM.discardModeBtn.classList.replace('shadow-[0_6px_0_#334155]', 'shadow-[0_6px_0_#991b1b]');
+                DOM.statusMessage.innerText = state.rollsLeft === 0 ? "원하는 족보를 선택해 점수를 기록하세요." : "주사위를 보관(터치)하거나 다시 굴리세요.";
+            }
+            updateScoreboardUI();
+        }
+
+        function toggleDiscardMode() {
+            if (state.rollsLeft === MAX_ROLLS || state.isRolling || state.gameEnded) return;
+            setDiscardMode(!isDiscardMode);
         }
 
         function calculateTempScores() {
@@ -581,6 +619,12 @@
                     if (['ones', 'twos', 'threes', 'fours', 'fives', 'sixes'].includes(cat)) {
                         upperSubtotal += state.scores[cat];
                     }
+                } else if (isDiscardMode) {
+                    // 강제 버리기 모드 활성화 시
+                    cell.innerHTML = `0 <span class="text-xs text-red-500 font-bold ml-1 tracking-tight border border-red-500/50 rounded px-1 bg-red-500/10">포기</span>`;
+                    cell.classList.add('discard-score');
+                    row.classList.add('playable');
+                    row.onclick = () => selectCategory(cat, 0);
                 } else if (tempScores && state.rollsLeft < MAX_ROLLS && !state.gameEnded) {
                     if (tempScores[cat] === 0) {
                         cell.innerHTML = `0 <span class="text-xs text-red-500 font-bold ml-1 tracking-tight border border-red-500/50 rounded px-1 bg-red-500/10">버리기</span>`;
@@ -608,6 +652,40 @@
             }
             total += bonus;
             DOM.totalScore.innerText = total;
+
+            // 하단 족보 동적 정렬 (현재 얻을 수 있는 점수가 가장 높은 순)
+            const lowerCategories = ['choice', 'fourOfAKind', 'fullHouse', 'smallStraight', 'largeStraight', 'yacht'];
+            const lowerRows = lowerCategories.map(cat => document.querySelector(`.score-row[data-category="${cat}"]`));
+            
+            lowerRows.sort((a, b) => {
+                const catA = a.dataset.category;
+                const catB = b.dataset.category;
+                
+                const isScoredA = state.scores[catA] !== null;
+                const isScoredB = state.scores[catB] !== null;
+                
+                // 이미 점수를 낸(확정된) 항목은 맨 아래로 배치
+                if (isScoredA && !isScoredB) return 1;
+                if (!isScoredA && isScoredB) return -1;
+                
+                // 아직 점수를 내지 않은 항목들끼리는 현재 임시 점수가 높은 순으로 정렬
+                if (!isScoredA && !isScoredB && tempScores && state.rollsLeft < MAX_ROLLS) {
+                    if (tempScores[catB] !== tempScores[catA]) {
+                        return tempScores[catB] - tempScores[catA];
+                    } else {
+                        // 점수가 동일하다면(예: 둘 다 0점) 원래 가치가 높은 족보를 우선 배치
+                        const maxScores = { yacht: 50, largeStraight: 30, smallStraight: 15, fullHouse: 30, fourOfAKind: 30, choice: 30 };
+                        return (maxScores[catB] || 0) - (maxScores[catA] || 0);
+                    }
+                }
+                
+                return 0;
+            });
+
+            // 정렬된 행들을 테이블(tbody) 최상단에 순서대로 다시 이어붙임
+            const tbody = document.getElementById('score-table-body');
+            const onesRow = document.querySelector('.score-row[data-category="ones"]');
+            lowerRows.forEach(row => tbody.insertBefore(row, onesRow));
         }
 
         function selectCategory(category, score) {
@@ -630,6 +708,10 @@
             DOM.roundDisplay.innerText = state.round;
             DOM.rollsLeftText.innerText = state.rollsLeft;
             DOM.rollBtn.disabled = false;
+            DOM.discardModeBtn.disabled = true; // 첫 굴리기 전엔 버리기 버튼 비활성화
+            
+            if (isDiscardMode) setDiscardMode(false);
+            
             DOM.statusMessage.innerText = "주사위를 굴려주세요!";
             
             const wrappers = document.querySelectorAll('.die-wrapper');
@@ -677,6 +759,7 @@
         }
 
         DOM.rollBtn.addEventListener('click', rollDice);
+        DOM.discardModeBtn.addEventListener('click', toggleDiscardMode);
         DOM.restartBtn.addEventListener('click', resetGame);
 
         // Init
