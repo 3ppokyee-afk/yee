@@ -20,7 +20,7 @@
         .score-row.playable:hover { background-color: #334155; }
         .temp-score { color: #10b981; font-weight: bold; }
         .discard-score { color: #ef4444; font-weight: bold; }
-        .score-row.playable:hover .discard-score { text-decoration: line-through; }
+        .score-row.playable:hover .discard-score { text-decoration: line-through; opacity: 0.7; }
         .final-score { color: #f8fafc; font-weight: 800; }
         
         .die-wrapper {
@@ -62,7 +62,7 @@
                 "d . b";
             padding: 8px;
             box-sizing: border-box;
-            backface-visibility: hidden; /* Fixes some rendering glitches */
+            backface-visibility: hidden;
         }
 
         /* 3D Face Positions */
@@ -82,7 +82,7 @@
         }
         
         /* 각 면의 숫자에 맞게 필요한 점만 화면에 표시(block)하고 위치 지정 */
-        .face[data-value="1"] .dot-1 { display: block; grid-area: g; background-color: #ef4444; width: 16px; height: 16px;} /* 1은 크고 붉은 점 */
+        .face[data-value="1"] .dot-1 { display: block; grid-area: g; background-color: #ef4444; width: 16px; height: 16px;}
         
         .face[data-value="2"] .dot-1 { display: block; grid-area: a; } 
         .face[data-value="2"] .dot-2 { display: block; grid-area: b; }
@@ -166,8 +166,12 @@
 <body class="flex flex-col h-screen overflow-hidden">
 
     <header class="bg-slate-800 shadow-xl p-4 flex justify-between items-center z-10 shrink-0 border-b border-slate-700">
-        <h1 class="text-2xl font-black text-emerald-400 tracking-wider">야추 <span class="text-white italic">DICE</span></h1>
-        <div class="text-slate-300 font-semibold px-4 py-1 bg-slate-900 rounded-full border border-slate-700">
+        <div class="flex items-center gap-2 md:gap-3">
+            <h1 class="text-xl md:text-2xl font-black text-emerald-400 tracking-wider">야추 <span class="text-white italic">DICE</span></h1>
+            <button id="rules-btn" class="bg-slate-700 hover:bg-slate-600 text-xs md:text-sm text-white px-2 py-1.5 rounded-lg transition-colors border border-slate-600 shadow">방법 ❓</button>
+            <button id="leaderboard-btn" class="bg-amber-600 hover:bg-amber-500 text-xs md:text-sm text-white px-2 py-1.5 rounded-lg transition-colors shadow">🏆 순위표</button>
+        </div>
+        <div class="text-slate-300 text-sm md:text-base font-semibold px-3 py-1 bg-slate-900 rounded-full border border-slate-700 whitespace-nowrap">
             라운드 <span id="round-display" class="text-emerald-400 font-bold ml-1">1</span><span class="text-slate-500"> / 12</span>
         </div>
     </header>
@@ -183,7 +187,7 @@
                     </tr>
                 </thead>
                 <tbody id="score-table-body">
-                    <!-- 하단 족보 (이제 상단에 위치) -->
+                    <!-- 상단 족보 (특수 족보) -->
                     <tr class="score-row border-b border-slate-700/50" data-category="choice">
                         <td class="p-3 font-semibold text-slate-200">초이스 <span class="text-xs font-normal text-slate-500 ml-1">(모든 합)</span></td>
                         <td class="p-3 text-center score-cell text-lg" data-category="choice">-</td>
@@ -209,7 +213,7 @@
                         <td class="p-3 text-center score-cell text-emerald-400 font-black text-xl" data-category="yacht">-</td>
                     </tr>
 
-                    <!-- 상단 족보 (이제 하단에 위치) -->
+                    <!-- 하단 족보 (숫자 족보) -->
                     <tr class="score-row border-b border-slate-700/50" data-category="ones">
                         <td class="p-3 font-semibold text-slate-200"><span class="text-red-400 mr-2 text-lg leading-none">⚀</span> 에이스</td>
                         <td class="p-3 text-center score-cell text-lg" data-category="ones">-</td>
@@ -236,7 +240,7 @@
                     </tr>
                     <!-- 보너스 구간 -->
                     <tr class="bg-slate-900/50 border-b border-slate-700">
-                        <td class="p-3 text-sm text-slate-400">상단 점수 (63점 이상 시 보너스)</td>
+                        <td class="p-3 text-sm text-slate-400">숫자 족보 합 (63점 이상 시 보너스)</td>
                         <td class="p-3 text-center font-bold text-slate-300" id="subtotal-score">0/63</td>
                     </tr>
                     <tr class="bg-slate-900/50 border-b border-slate-700">
@@ -282,15 +286,15 @@
 
             <!-- Controls -->
             <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 flex flex-col md:flex-row gap-4 justify-between items-center shadow-lg">
-                <div class="text-slate-400 font-medium text-center md:text-left w-full md:w-auto">
+                <div class="text-slate-400 font-medium text-center md:text-left w-full md:w-auto shrink-0">
                     남은 굴리기<br><span id="rolls-left" class="text-white text-3xl font-black">3</span>
                 </div>
                 <div class="flex w-full md:w-2/3 gap-3">
                     <button id="roll-btn" class="flex-[2] bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-slate-900 font-black text-xl md:text-2xl py-4 rounded-xl shadow-[0_6px_0_#065f46] hover:translate-y-[2px] hover:shadow-[0_4px_0_#065f46] active:translate-y-[6px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-[6px]">
                         ROLL (굴리기)
                     </button>
-                    <button id="discard-mode-btn" disabled class="flex-[1] bg-red-500 hover:bg-red-400 active:bg-red-600 text-white font-black text-lg md:text-xl py-4 rounded-xl shadow-[0_6px_0_#991b1b] hover:translate-y-[2px] hover:shadow-[0_4px_0_#991b1b] active:translate-y-[6px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-[6px]">
-                        족보 버리기
+                    <button id="reset-dice-btn" class="flex-[1] bg-orange-500 hover:bg-orange-400 active:bg-orange-600 text-white font-black text-lg md:text-xl py-4 rounded-xl shadow-[0_6px_0_#c2410c] hover:translate-y-[2px] hover:shadow-[0_4px_0_#c2410c] active:translate-y-[6px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-[6px]">
+                        주사위 초기화
                     </button>
                 </div>
             </div>
@@ -298,24 +302,123 @@
         </section>
     </main>
 
+    <!-- 게임 오버 및 점수 등록 모달 -->
     <div id="game-over-modal" class="fixed inset-0 bg-black/80 flex justify-center items-center z-50">
         <div class="bg-slate-800 p-8 rounded-3xl shadow-2xl border-4 border-emerald-500 max-w-sm w-full mx-4 text-center">
             <h2 class="text-4xl font-black text-emerald-400 mb-2">게임 종료</h2>
             <p class="text-slate-400 mb-6">최종 점수</p>
             <div class="text-7xl font-black text-white mb-8 drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]" id="final-score-display">0</div>
+            
+            <!-- 점수 제출 영역 (데이터베이스 연동 시 활성화됨) -->
+            <div id="score-submit-area" class="mb-6 hidden">
+                <input type="text" id="player-name-input" placeholder="이름을 입력하세요" class="w-full bg-slate-900 text-white border-2 border-slate-600 rounded-lg px-4 py-3 mb-2 text-center text-lg outline-none focus:border-amber-400 transition-colors" maxlength="10">
+                <button id="submit-score-btn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg transition-colors shadow-lg">🏆 점수 랭킹에 등록하기</button>
+            </div>
+
             <button id="restart-btn" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold text-xl py-4 rounded-xl shadow-[0_4px_0_#0f172a] active:shadow-none active:translate-y-[4px] transition-all">
                 새 게임 시작
             </button>
         </div>
     </div>
 
-    <script>
+    <!-- 리더보드 모달 -->
+    <div id="leaderboard-modal" class="fixed inset-0 bg-black/80 hidden justify-center items-center z-50 p-4">
+        <div class="bg-slate-800 p-6 rounded-2xl shadow-2xl border border-amber-500 max-w-md w-full max-h-[90vh] flex flex-col">
+            <h2 class="text-2xl font-black text-amber-400 mb-4 flex justify-between items-center shrink-0">
+                🏆 명예의 전당 (Top 10)
+                <button id="close-leaderboard-btn" class="text-slate-400 hover:text-white text-3xl leading-none">&times;</button>
+            </h2>
+            <div class="flex-1 overflow-y-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-900 text-slate-400 text-sm">
+                            <th class="p-3 border-b border-slate-700 w-16 text-center">순위</th>
+                            <th class="p-3 border-b border-slate-700">이름</th>
+                            <th class="p-3 border-b border-slate-700 text-right">점수</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body">
+                        <tr><td colspan="3" class="text-center p-4 text-slate-500">데이터를 불러오는 중...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 게임 방법 모달 -->
+    <div id="rules-modal" class="fixed inset-0 bg-black/80 hidden justify-center items-center z-50 p-4">
+        <div class="bg-slate-800 p-6 rounded-2xl shadow-2xl border border-slate-600 max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <h2 class="text-2xl font-black text-emerald-400 mb-4 flex justify-between items-center">
+                야추 다이스 규칙
+                <button id="close-rules-btn" class="text-slate-400 hover:text-white text-3xl leading-none">&times;</button>
+            </h2>
+            
+            <div class="space-y-4 text-slate-300 text-sm">
+                <p>총 12라운드 동안 5개의 주사위를 굴려 점수를 기록하는 게임입니다. 각 턴마다 주사위를 최대 3번까지 굴릴 수 있으며, 원하는 주사위는 터치하여 보관(Keep)할 수 있습니다.</p>
+                
+                <div class="bg-slate-900 p-3 rounded-lg border border-slate-700">
+                    <h3 class="text-emerald-400 font-bold mb-2">🏆 상단: 특수 족보</h3>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li><strong class="text-white">초이스:</strong> 주사위 5개의 모든 합 (조건 없음)</li>
+                        <li><strong class="text-white">포 오브 어 카인드:</strong> 동일한 숫자 4개 이상 (모든 주사위 합)</li>
+                        <li><strong class="text-white">풀 하우스:</strong> 동일한 숫자 3개 + 2개 조합 (모든 주사위 합)</li>
+                        <li><strong class="text-white">스몰 스트레이트:</strong> 4개의 숫자가 연속됨 (15점)</li>
+                        <li><strong class="text-white">라지 스트레이트:</strong> 5개의 숫자가 연속됨 (30점)</li>
+                        <li><strong class="text-white">야추 (YACHT):</strong> 5개의 숫자가 모두 동일함 (50점)</li>
+                    </ul>
+                </div>
+
+                <div class="bg-slate-900 p-3 rounded-lg border border-slate-700">
+                    <h3 class="text-emerald-400 font-bold mb-2">🔢 하단: 숫자 족보</h3>
+                    <ul class="list-disc pl-5 space-y-1 mb-2">
+                        <li><strong class="text-white">에이스 ~ 식스스:</strong> 해당 숫자가 나온 주사위들의 합만 계산합니다.</li>
+                    </ul>
+                    <p class="text-amber-400 text-xs font-bold bg-amber-400/10 p-2 rounded">
+                        💡 하단의 숫자 족보(에이스~식스스) 점수 합이 63점 이상이 되면 +35점의 추가 보너스를 받습니다!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase 설정 및 초기화
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'yacht-dice-app';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        
+        let db, auth, currentUser;
+        
+        if (firebaseConfig) {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            
+            const initAuth = async () => {
+                try {
+                    if (typeof __initial_auth_token !== 'undefined') {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                    currentUser = auth.currentUser;
+                    subscribeToLeaderboard();
+                } catch (e) {
+                    console.error("Firebase Auth Error:", e);
+                }
+            };
+            initAuth();
+        }
+
         const NUM_DICE = 5;
         const MAX_ROLLS = 3;
         const TOTAL_ROUNDS = 12;
 
         let state = {
-            dice: [1, 2, 3, 4, 5], // Initial fake values
+            dice: [1, 2, 3, 4, 5],
             locked: [false, false, false, false, false],
             rollsLeft: MAX_ROLLS,
             round: 1,
@@ -327,13 +430,11 @@
             gameEnded: false
         };
 
-        let isDiscardMode = false;
-
         const DOM = {
             container: document.getElementById('dice-container'),
             cup: document.getElementById('dice-cup'),
             rollBtn: document.getElementById('roll-btn'),
-            discardModeBtn: document.getElementById('discard-mode-btn'),
+            resetDiceBtn: document.getElementById('reset-dice-btn'),
             rollsLeftText: document.getElementById('rolls-left'),
             roundDisplay: document.getElementById('round-display'),
             statusMessage: document.getElementById('status-message'),
@@ -344,10 +445,19 @@
             totalScore: document.getElementById('total-score'),
             gameOverModal: document.getElementById('game-over-modal'),
             finalScoreDisplay: document.getElementById('final-score-display'),
-            restartBtn: document.getElementById('restart-btn')
+            restartBtn: document.getElementById('restart-btn'),
+            rulesBtn: document.getElementById('rules-btn'),
+            rulesModal: document.getElementById('rules-modal'),
+            closeRulesBtn: document.getElementById('close-rules-btn'),
+            leaderboardBtn: document.getElementById('leaderboard-btn'),
+            leaderboardModal: document.getElementById('leaderboard-modal'),
+            closeLeaderboardBtn: document.getElementById('close-leaderboard-btn'),
+            leaderboardBody: document.getElementById('leaderboard-body'),
+            scoreSubmitArea: document.getElementById('score-submit-area'),
+            playerNameInput: document.getElementById('player-name-input'),
+            submitScoreBtn: document.getElementById('submit-score-btn')
         };
 
-        // Rotation mapping for 3D faces
         const faceBases = {
             1: { x: 0, y: 0 },
             2: { x: -90, y: 0 },
@@ -357,7 +467,6 @@
             6: { x: 180, y: 0 }
         };
 
-        // Create Dice DOM Elements
         function create3DDice() {
             DOM.container.innerHTML = '';
             for (let i = 0; i < NUM_DICE; i++) {
@@ -368,7 +477,6 @@
                 const die3D = document.createElement('div');
                 die3D.className = 'die-3d';
                 
-                // Add 6 faces
                 const faces = ['front', 'top', 'right', 'left', 'bottom', 'back'];
                 const values = [1, 2, 3, 4, 5, 6];
                 
@@ -377,7 +485,6 @@
                     face.className = `face ${faces[j]}`;
                     face.dataset.value = values[j];
                     
-                    // Add dots inside face
                     for(let d = 1; d <= 6; d++) {
                         const dot = document.createElement('span');
                         dot.className = `die-dot dot-${d}`;
@@ -387,12 +494,9 @@
                 }
 
                 wrapper.appendChild(die3D);
-                
-                // Click to Keep
                 wrapper.addEventListener('click', () => toggleLock(i));
                 DOM.container.appendChild(wrapper);
 
-                // Initial position (center of board)
                 resetDiePosition(wrapper, i);
             }
         }
@@ -400,7 +504,7 @@
         function resetDiePosition(wrapper, index) {
             wrapper.style.top = '45%';
             wrapper.style.left = '50%';
-            wrapper.style.opacity = '0'; // Hidden initially
+            wrapper.style.opacity = '0';
             const die3D = wrapper.querySelector('.die-3d');
             die3D.style.transform = `rotateX(0deg) rotateY(0deg)`;
         }
@@ -410,19 +514,15 @@
 
             state.isRolling = true;
             DOM.rollBtn.disabled = true;
-            DOM.discardModeBtn.disabled = true;
-            
-            if (isDiscardMode) setDiscardMode(false);
 
             DOM.statusMessage.innerText = "주사위를 섞는 중...";
             
             const wrappers = document.querySelectorAll('.die-wrapper');
             const cup = DOM.cup;
 
-            // 1. Move unkept dice to center and cover with cup
             wrappers.forEach((wrap, i) => {
                 if (!state.locked[i]) {
-                    wrap.style.transition = 'none'; // Instant move to center
+                    wrap.style.transition = 'none';
                     wrap.style.top = '45%';
                     wrap.style.left = '50%';
                     wrap.style.opacity = '0';
@@ -431,23 +531,19 @@
                 }
             });
 
-            // Show cup coming down
             cup.className = 'anim-cover';
             cup.style.display = 'block';
             await sleep(400);
 
-            // 2. Shake cup
             cup.className = 'anim-shake';
             await sleep(600);
 
-            // 3. Determine new values
             for (let i = 0; i < NUM_DICE; i++) {
                 if (!state.locked[i]) {
                     state.dice[i] = Math.floor(Math.random() * 6) + 1;
                 }
             }
 
-            // 4. Lift cup & Scatter dice
             cup.className = 'anim-lift';
             
             wrappers.forEach((wrap, i) => {
@@ -455,7 +551,6 @@
                     const die3D = wrap.querySelector('.die-3d');
                     const val = state.dice[i];
                     
-                    // Scatter Position (Roll Area: Top 10-60%, Left 20-80%)
                     const rTop = 15 + Math.random() * 45;
                     const rLeft = 20 + Math.random() * 60;
                     
@@ -463,18 +558,13 @@
                     wrap.style.left = `${rLeft}%`;
                     wrap.style.opacity = '1';
 
-                    // 3D Spin Calculation
-                    // Retrieve past rotation to prevent unwinding
                     let currentX = wrap.dataset.rotX ? parseInt(wrap.dataset.rotX) : 0;
                     let currentY = wrap.dataset.rotY ? parseInt(wrap.dataset.rotY) : 0;
 
                     const base = faceBases[val];
-                    
-                    // Add 2-3 full random spins
                     let spinsX = 720 + Math.floor(Math.random() * 3) * 360;
                     let spinsY = 720 + Math.floor(Math.random() * 3) * 360;
                     
-                    // Alternate spin direction for variety
                     if (Math.random() > 0.5) spinsX *= -1;
                     if (Math.random() > 0.5) spinsY *= -1;
 
@@ -488,15 +578,13 @@
                 }
             });
 
-            await sleep(500); // Wait for lift animation to finish
+            await sleep(500);
             cup.style.display = 'none';
-            await sleep(300); // Wait for dice to finish settling
+            await sleep(300);
 
-            // Update State
             state.rollsLeft--;
             state.isRolling = false;
             
-            calculateTempScores();
             updateScoreboardUI();
             
             if (state.rollsLeft === 0) {
@@ -506,7 +594,6 @@
                 DOM.rollBtn.disabled = false;
                 DOM.statusMessage.innerText = "주사위를 보관(터치)하거나 다시 굴리세요.";
             }
-            DOM.discardModeBtn.disabled = false;
             DOM.rollsLeftText.innerText = state.rollsLeft;
         }
 
@@ -517,47 +604,18 @@
             const wrap = document.querySelector(`.die-wrapper[data-index="${index}"]`);
             
             if (state.locked[index]) {
-                // Move to Keep Tray
-                // Spread evenly at the bottom
-                const spacing = 16; // percentage width spacing
+                const spacing = 16;
                 const offset = 18 + (index * spacing); 
                 wrap.style.top = 'calc(100% - 45px)';
                 wrap.style.left = `${offset}%`;
-                // Add highlight ring
                 wrap.style.filter = 'drop-shadow(0 0 10px rgba(16, 185, 129, 1))';
             } else {
-                // Move back to roll area (just give it a random position slightly above)
                 const rTop = 40 + Math.random() * 20;
                 const rLeft = 30 + Math.random() * 40;
                 wrap.style.top = `${rTop}%`;
                 wrap.style.left = `${rLeft}%`;
                 wrap.style.filter = 'none';
             }
-        }
-
-        function setDiscardMode(active) {
-            if (active === isDiscardMode) return;
-            isDiscardMode = active;
-            
-            if (isDiscardMode) {
-                DOM.discardModeBtn.innerText = "버리기 취소";
-                DOM.discardModeBtn.classList.replace('bg-red-500', 'bg-slate-600');
-                DOM.discardModeBtn.classList.replace('hover:bg-red-400', 'hover:bg-slate-500');
-                DOM.discardModeBtn.classList.replace('shadow-[0_6px_0_#991b1b]', 'shadow-[0_6px_0_#334155]');
-                DOM.statusMessage.innerText = "0점 처리(포기)할 족보를 선택하세요.";
-            } else {
-                DOM.discardModeBtn.innerText = "족보 버리기";
-                DOM.discardModeBtn.classList.replace('bg-slate-600', 'bg-red-500');
-                DOM.discardModeBtn.classList.replace('hover:bg-slate-500', 'hover:bg-red-400');
-                DOM.discardModeBtn.classList.replace('shadow-[0_6px_0_#334155]', 'shadow-[0_6px_0_#991b1b]');
-                DOM.statusMessage.innerText = state.rollsLeft === 0 ? "원하는 족보를 선택해 점수를 기록하세요." : "주사위를 보관(터치)하거나 다시 굴리세요.";
-            }
-            updateScoreboardUI();
-        }
-
-        function toggleDiscardMode() {
-            if (state.rollsLeft === MAX_ROLLS || state.isRolling || state.gameEnded) return;
-            setDiscardMode(!isDiscardMode);
         }
 
         function calculateTempScores() {
@@ -619,15 +677,9 @@
                     if (['ones', 'twos', 'threes', 'fours', 'fives', 'sixes'].includes(cat)) {
                         upperSubtotal += state.scores[cat];
                     }
-                } else if (isDiscardMode) {
-                    // 강제 버리기 모드 활성화 시
-                    cell.innerHTML = `0 <span class="text-xs text-red-500 font-bold ml-1 tracking-tight border border-red-500/50 rounded px-1 bg-red-500/10">포기</span>`;
-                    cell.classList.add('discard-score');
-                    row.classList.add('playable');
-                    row.onclick = () => selectCategory(cat, 0);
                 } else if (tempScores && state.rollsLeft < MAX_ROLLS && !state.gameEnded) {
                     if (tempScores[cat] === 0) {
-                        cell.innerHTML = `0 <span class="text-xs text-red-500 font-bold ml-1 tracking-tight border border-red-500/50 rounded px-1 bg-red-500/10">버리기</span>`;
+                        cell.innerText = '0'; // 0만 깔끔하게 표시
                         cell.classList.add('discard-score');
                     } else {
                         cell.innerText = tempScores[cat];
@@ -653,39 +705,47 @@
             total += bonus;
             DOM.totalScore.innerText = total;
 
-            // 하단 족보 동적 정렬 (현재 얻을 수 있는 점수가 가장 높은 순)
-            const lowerCategories = ['choice', 'fourOfAKind', 'fullHouse', 'smallStraight', 'largeStraight', 'yacht'];
-            const lowerRows = lowerCategories.map(cat => document.querySelector(`.score-row[data-category="${cat}"]`));
+            // 족보 정렬 - 상단(특수족보)와 하단(숫자족보)을 각각 분리해서 정렬
+            const upperCategories = ['choice', 'fourOfAKind', 'fullHouse', 'smallStraight', 'largeStraight', 'yacht'];
+            const lowerCategories = ['ones', 'twos', 'threes', 'fours', 'fives', 'sixes'];
             
-            lowerRows.sort((a, b) => {
+            const tbody = document.getElementById('score-table-body');
+            
+            // 상단 정렬
+            const upperRows = upperCategories.map(cat => document.querySelector(`.score-row[data-category="${cat}"]`));
+            sortRows(upperRows, tempScores, { yacht: 50, largeStraight: 30, smallStraight: 15, fullHouse: 30, fourOfAKind: 30, choice: 30 });
+            upperRows.forEach(row => tbody.appendChild(row));
+
+            // 하단 정렬
+            const lowerRows = lowerCategories.map(cat => document.querySelector(`.score-row[data-category="${cat}"]`));
+            sortRows(lowerRows, tempScores, { sixes: 30, fives: 25, fours: 20, threes: 15, twos: 10, ones: 5 });
+            lowerRows.forEach(row => tbody.appendChild(row));
+
+            // 보너스 행들은 맨 아래로
+            const bonusRows = document.querySelectorAll('.bg-slate-900\\/50');
+            bonusRows.forEach(row => tbody.appendChild(row));
+        }
+
+        function sortRows(rows, tempScores, maxScores) {
+            rows.sort((a, b) => {
                 const catA = a.dataset.category;
                 const catB = b.dataset.category;
                 
                 const isScoredA = state.scores[catA] !== null;
                 const isScoredB = state.scores[catB] !== null;
                 
-                // 이미 점수를 낸(확정된) 항목은 맨 아래로 배치
                 if (isScoredA && !isScoredB) return 1;
                 if (!isScoredA && isScoredB) return -1;
                 
-                // 아직 점수를 내지 않은 항목들끼리는 현재 임시 점수가 높은 순으로 정렬
                 if (!isScoredA && !isScoredB && tempScores && state.rollsLeft < MAX_ROLLS) {
                     if (tempScores[catB] !== tempScores[catA]) {
                         return tempScores[catB] - tempScores[catA];
                     } else {
-                        // 점수가 동일하다면(예: 둘 다 0점) 원래 가치가 높은 족보를 우선 배치
-                        const maxScores = { yacht: 50, largeStraight: 30, smallStraight: 15, fullHouse: 30, fourOfAKind: 30, choice: 30 };
                         return (maxScores[catB] || 0) - (maxScores[catA] || 0);
                     }
                 }
-                
                 return 0;
             });
-
-            // 정렬된 행들을 테이블(tbody) 최상단에 순서대로 다시 이어붙임
-            const tbody = document.getElementById('score-table-body');
-            const onesRow = document.querySelector('.score-row[data-category="ones"]');
-            lowerRows.forEach(row => tbody.insertBefore(row, onesRow));
         }
 
         function selectCategory(category, score) {
@@ -708,21 +768,38 @@
             DOM.roundDisplay.innerText = state.round;
             DOM.rollsLeftText.innerText = state.rollsLeft;
             DOM.rollBtn.disabled = false;
-            DOM.discardModeBtn.disabled = true; // 첫 굴리기 전엔 버리기 버튼 비활성화
-            
-            if (isDiscardMode) setDiscardMode(false);
             
             DOM.statusMessage.innerText = "주사위를 굴려주세요!";
             
             const wrappers = document.querySelectorAll('.die-wrapper');
             wrappers.forEach((wrap, i) => {
                 wrap.style.filter = 'none';
-                // Hide them back into center until rolled
                 wrap.style.top = '45%';
                 wrap.style.left = '50%';
                 wrap.style.opacity = '0';
             });
 
+            updateScoreboardUI();
+        }
+
+        function resetDiceOnly() {
+            if (state.rollsLeft === MAX_ROLLS || state.isRolling || state.gameEnded) return;
+            
+            state.locked = [false, false, false, false, false];
+            state.rollsLeft = MAX_ROLLS;
+            DOM.rollsLeftText.innerText = state.rollsLeft;
+            DOM.rollBtn.disabled = false;
+            
+            DOM.statusMessage.innerText = "주사위를 초기화했습니다. 다시 굴려주세요!";
+            
+            const wrappers = document.querySelectorAll('.die-wrapper');
+            wrappers.forEach((wrap) => {
+                wrap.style.filter = 'none';
+                wrap.style.top = '45%';
+                wrap.style.left = '50%';
+                wrap.style.opacity = '0';
+            });
+            
             updateScoreboardUI();
         }
 
@@ -732,6 +809,16 @@
             DOM.statusMessage.innerText = "게임 종료!";
             DOM.rollBtn.disabled = true;
             DOM.finalScoreDisplay.innerText = DOM.totalScore.innerText;
+            
+            if (db && currentUser) {
+                DOM.scoreSubmitArea.classList.remove('hidden');
+                DOM.playerNameInput.value = '';
+                DOM.playerNameInput.classList.remove('border-red-500');
+                DOM.playerNameInput.placeholder = "이름을 입력하세요";
+                DOM.submitScoreBtn.disabled = false;
+                DOM.submitScoreBtn.innerText = "🏆 점수 랭킹에 등록하기";
+            }
+            
             DOM.gameOverModal.style.display = 'flex';
         }
 
@@ -751,6 +838,7 @@
             
             DOM.scoreCells.forEach(cell => cell.classList.remove('final-score'));
             DOM.gameOverModal.style.display = 'none';
+            if(DOM.scoreSubmitArea) DOM.scoreSubmitArea.classList.add('hidden');
             resetTurn();
         }
 
@@ -758,9 +846,103 @@
             return new Promise(resolve => setTimeout(resolve, ms));
         }
 
+        // --- 리더보드 통신 로직 ---
+        function subscribeToLeaderboard() {
+            if (!db || !currentUser) return;
+            const lbRef = collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
+            
+            onSnapshot(lbRef, (snapshot) => {
+                const scores = [];
+                snapshot.forEach(doc => {
+                    scores.push(doc.data());
+                });
+                
+                // 점수 기준 내림차순 정렬
+                scores.sort((a, b) => b.score - a.score);
+                
+                // 상위 10개만 추출
+                const topScores = scores.slice(0, 10);
+                
+                DOM.leaderboardBody.innerHTML = '';
+                if (topScores.length === 0) {
+                    DOM.leaderboardBody.innerHTML = '<tr><td colspan="3" class="text-center p-6 text-slate-400">아직 등록된 점수가 없습니다.<br>첫 번째 랭커가 되어보세요!</td></tr>';
+                    return;
+                }
+
+                topScores.forEach((s, index) => {
+                    const tr = document.createElement('tr');
+                    tr.className = "border-b border-slate-700/50 hover:bg-slate-800/50 transition-colors";
+                    
+                    let rankDisplay = `${index + 1}위`;
+                    if (index === 0) rankDisplay = '🥇';
+                    if (index === 1) rankDisplay = '🥈';
+                    if (index === 2) rankDisplay = '🥉';
+
+                    tr.innerHTML = `
+                        <td class="p-3 text-center font-bold ${index < 3 ? 'text-3xl' : 'text-slate-400'}">${rankDisplay}</td>
+                        <td class="p-3 font-semibold text-slate-200">${escapeHTML(s.playerName)}</td>
+                        <td class="p-3 text-right font-black text-amber-400 text-lg">${s.score}</td>
+                    `;
+                    DOM.leaderboardBody.appendChild(tr);
+                });
+            }, (error) => {
+                console.error("Leaderboard fetch error:", error);
+                DOM.leaderboardBody.innerHTML = '<tr><td colspan="3" class="text-center p-4 text-red-400">데이터를 불러오지 못했습니다.</td></tr>';
+            });
+        }
+
+        async function submitScore() {
+            if (!db || !currentUser) return;
+            const name = DOM.playerNameInput.value.trim();
+            if (!name) {
+                DOM.playerNameInput.classList.add('border-red-500');
+                DOM.playerNameInput.placeholder = "이름을 꼭 입력해주세요!";
+                DOM.playerNameInput.focus();
+                return;
+            }
+
+            const finalScore = parseInt(DOM.totalScore.innerText);
+            DOM.submitScoreBtn.disabled = true;
+            DOM.submitScoreBtn.innerText = "등록 중...";
+
+            try {
+                const lbRef = collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
+                await addDoc(lbRef, {
+                    playerName: name,
+                    score: finalScore,
+                    timestamp: Date.now(),
+                    userId: currentUser.uid
+                });
+                
+                DOM.submitScoreBtn.innerText = "등록 완료!";
+                DOM.scoreSubmitArea.classList.add('hidden');
+                
+                DOM.gameOverModal.style.display = 'none';
+                DOM.leaderboardModal.style.display = 'flex';
+                
+            } catch (e) {
+                console.error("Score submit error:", e);
+                DOM.submitScoreBtn.disabled = false;
+                DOM.submitScoreBtn.innerText = "오류 발생 (다시 시도)";
+            }
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag]));
+        }
+
         DOM.rollBtn.addEventListener('click', rollDice);
-        DOM.discardModeBtn.addEventListener('click', toggleDiscardMode);
+        DOM.resetDiceBtn.addEventListener('click', resetDiceOnly);
         DOM.restartBtn.addEventListener('click', resetGame);
+        
+        DOM.rulesBtn.addEventListener('click', () => DOM.rulesModal.style.display = 'flex');
+        DOM.closeRulesBtn.addEventListener('click', () => DOM.rulesModal.style.display = 'none');
+        
+        DOM.leaderboardBtn.addEventListener('click', () => DOM.leaderboardModal.style.display = 'flex');
+        DOM.closeLeaderboardBtn.addEventListener('click', () => DOM.leaderboardModal.style.display = 'none');
+        DOM.submitScoreBtn.addEventListener('click', submitScore);
 
         // Init
         create3DDice();
