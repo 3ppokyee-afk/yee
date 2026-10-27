@@ -386,9 +386,10 @@
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase 설정 및 초기화
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'yacht-dice-app';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        // Firebase 설정 및 초기화 (더욱 안정적인 방식으로 변경)
+        const appId = window.__app_id || (typeof __app_id !== 'undefined' ? __app_id : 'yacht-dice-app');
+        const configStr = window.__firebase_config || (typeof __firebase_config !== 'undefined' ? __firebase_config : null);
+        const firebaseConfig = configStr ? (typeof configStr === 'string' ? JSON.parse(configStr) : configStr) : null;
         
         let db, auth, currentUser;
         
@@ -399,8 +400,9 @@
             
             const initAuth = async () => {
                 try {
-                    if (typeof __initial_auth_token !== 'undefined') {
-                        await signInWithCustomToken(auth, __initial_auth_token);
+                    const token = window.__initial_auth_token || (typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null);
+                    if (token) {
+                        await signInWithCustomToken(auth, token);
                     } else {
                         await signInAnonymously(auth);
                     }
@@ -812,11 +814,21 @@
             
             if (db && currentUser) {
                 DOM.scoreSubmitArea.classList.remove('hidden');
+                DOM.playerNameInput.style.display = 'block';
                 DOM.playerNameInput.value = '';
                 DOM.playerNameInput.classList.remove('border-red-500');
                 DOM.playerNameInput.placeholder = "이름을 입력하세요";
                 DOM.submitScoreBtn.disabled = false;
                 DOM.submitScoreBtn.innerText = "🏆 점수 랭킹에 등록하기";
+                
+                // 기존 에러 메시지 초기화
+                const oldErr = document.getElementById('error-msg');
+                if(oldErr) oldErr.remove();
+            } else {
+                DOM.scoreSubmitArea.classList.remove('hidden');
+                DOM.playerNameInput.style.display = 'none';
+                DOM.submitScoreBtn.disabled = true;
+                DOM.submitScoreBtn.innerText = "서버 연결 안됨 (기록 불가)";
             }
             
             DOM.gameOverModal.style.display = 'flex';
@@ -860,8 +872,8 @@
                 // 점수 기준 내림차순 정렬
                 scores.sort((a, b) => b.score - a.score);
                 
-                // 상위 10개만 추출
-                const topScores = scores.slice(0, 10);
+                // 상위 20개만 추출 (더 많은 랭커 확인)
+                const topScores = scores.slice(0, 20);
                 
                 DOM.leaderboardBody.innerHTML = '';
                 if (topScores.length === 0) {
@@ -923,7 +935,16 @@
             } catch (e) {
                 console.error("Score submit error:", e);
                 DOM.submitScoreBtn.disabled = false;
-                DOM.submitScoreBtn.innerText = "오류 발생 (다시 시도)";
+                DOM.submitScoreBtn.innerText = "오류 발생! 다시 시도";
+                
+                let errMsg = document.getElementById('error-msg');
+                if(!errMsg) {
+                    errMsg = document.createElement('div');
+                    errMsg.id = 'error-msg';
+                    errMsg.className = "text-red-400 text-sm mt-2 font-bold";
+                    DOM.scoreSubmitArea.appendChild(errMsg);
+                }
+                errMsg.innerText = "서버 에러: 데이터베이스 권한이 없거나 연결이 끊겼습니다.";
             }
         }
 
